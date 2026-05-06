@@ -1,4 +1,6 @@
 #include "streaming/session.h"
+#include "streaming/input/inputinjector.h"
+#include "streaming/input/inputrecorder.h"
 
 #include <Limelight.h>
 #include "SDL_compat.h"
@@ -55,6 +57,13 @@ void SdlInputHandler::sendGamepadState(GamepadState* state)
 {
     SDL_assert(m_GamepadMask == 0x1 || m_MultiController);
 
+    // Phase 3: --block-physical-input. The injector is driving pads 0/1, so drop
+    // every physical pad event before it reaches the host. We still let arrival
+    // and disconnect events fire so the host's bookkeeping stays consistent.
+    if (InputInjector::sBlockPhysical.load(std::memory_order_relaxed)) {
+        return;
+    }
+
     // Handle Select+PS as the clickpad button on PS4/5 controllers without a clickpad mapping
     int buttons = state->buttons;
     if (state->clickpadButtonEmulationEnabled) {
@@ -110,6 +119,9 @@ void SdlInputHandler::sendGamepadState(GamepadState* state)
                                lsY,
                                rsX,
                                rsY);
+
+    // Phase 3: tap the recorder with the post-merge state actually sent.
+    InputRecorder::tap(state->index, buttons, lt, rt, lsX, lsY, rsX, rsY);
 }
 
 void SdlInputHandler::sendGamepadBatteryState(GamepadState* state, SDL_JoystickPowerLevel level)

@@ -2,6 +2,9 @@
 #include "settings/streamingpreferences.h"
 #include "streaming/streamutils.h"
 #include "backend/richpresencemanager.h"
+#include "input/inputinjector.h"
+#include "input/inputcontrolserver.h"
+#include "input/inputrecorder.h"
 
 #include <Limelight.h>
 #include "SDL_compat.h"
@@ -559,6 +562,9 @@ Session::Session(NvComputer* computer, NvApp& app, StreamingPreferences *prefere
       m_QtWindow(nullptr),
       m_UnexpectedTermination(true), // Failure prior to streaming is unexpected
       m_InputHandler(nullptr),
+      m_InputInjector(nullptr),
+      m_InputControlServer(nullptr),
+      m_InputRecorder(nullptr),
       m_MouseEmulationRefCount(0),
       m_FlushingWindowEventsRef(0),
       m_ShouldExit(false),
@@ -1855,6 +1861,38 @@ void Session::exec()
 
     m_InputHandler->setWindow(m_Window);
 
+    // Phase 3: --block-physical-input toggle. Persists across the lifetime of
+    // the session and is reset on teardown.
+    InputInjector::sBlockPhysical.store(
+        m_Preferences->inputInjectionBlockPhysical, std::memory_order_relaxed);
+
+    // Phase 3: --input-record FILE starts the macro recorder.
+    if (!m_Preferences->inputRecordPath.isEmpty()) {
+        m_InputRecorder = new InputRecorder(m_Preferences->inputRecordPath,
+                                            m_Preferences->inputRecordHz);
+        m_InputRecorder->start();
+    }
+
+    // Start input injection if requested via CLI
+    if (m_Preferences->inputInjectionPort > 0
+        && !m_Preferences->inputInjectionToken.isEmpty()) {
+        m_InputInjector = new InputInjector();
+        m_InputInjector->enable();
+        m_InputControlServer = new InputControlServer(
+            m_InputInjector,
+            static_cast<quint16>(m_Preferences->inputInjectionPort),
+            m_Preferences->inputInjectionToken);
+        if (!m_InputControlServer->start()) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                         "Input injection control server failed to start; disabling");
+            delete m_InputControlServer;
+            m_InputControlServer = nullptr;
+            m_InputInjector->disable();
+            delete m_InputInjector;
+            m_InputInjector = nullptr;
+        }
+    }
+
     QSvgRenderer svgIconRenderer(QString(":/res/moonlight.svg"));
     QImage svgImage(ICON_SIZE, ICON_SIZE, QImage::Format_RGBA8888);
     svgImage.fill(0);
@@ -2298,6 +2336,27 @@ DispatchDeferredCleanup:
 
     // Raise any keys that are still down
     m_InputHandler->raiseAllKeys();
+
+    // Tear down input injection (server first to stop accepting commands,
+    // then injector which sends a final neutral state).
+    if (m_InputControlServer) {
+        m_InputControlServer->stop();
+        delete m_InputControlServer;
+        m_InputControlServer = nullptr;
+    }
+    if (m_InputInjector) {
+        m_InputInjector->disable();
+        delete m_InputInjector;
+        m_InputInjector = nullptr;
+    }
+    InputInjector::sBlockPhysical.store(false, std::memory_order_relaxed);
+
+    // Flush the recorder to disk and tear it down.
+    if (m_InputRecorder) {
+        m_InputRecorder->finish();
+        delete m_InputRecorder;
+        m_InputRecorder = nullptr;
+    }
 
     // Destroy the input handler now. This must be destroyed
     // before allowwing the UI to continue execution or it could

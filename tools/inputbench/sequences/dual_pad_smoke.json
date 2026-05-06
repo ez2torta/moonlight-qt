@@ -1,0 +1,14 @@
+{
+  "mode": "events",
+  "fps": 120,
+  "events": [
+    {"t": 0,   "pad": 0, "down": ["A"]},
+    {"t": 4,   "pad": 0, "up":   ["A"]},
+    {"t": 0,   "pad": 1, "down": ["B"]},
+    {"t": 4,   "pad": 1, "up":   ["B"]},
+    {"t": 60,  "pad": 0, "down": ["RIGHT"]},
+    {"t": 60,  "pad": 1, "down": ["LEFT"]},
+    {"t": 120, "pad": 0, "up":   ["RIGHT"]},
+    {"t": 120, "pad": 1, "up":   ["LEFT"]}
+  ]
+}

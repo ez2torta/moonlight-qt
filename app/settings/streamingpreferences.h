@@ -188,6 +188,16 @@ public:
     Language language;
     CaptureSysKeysMode captureSysKeysMode;
 
+    // Input injection (transient: not persisted to QSettings)
+    int inputInjectionPort = 0;        // 0 = disabled
+    QString inputInjectionToken;
+    bool inputInjectionBlockPhysical = false;
+
+    // Macro recorder (transient): when set, every controller event the host
+    // would receive is captured and written to this path on stream exit.
+    QString inputRecordPath;
+    double inputRecordHz = 60.0;
+
 signals:
     void displayModeChanged();
     void bitrateChanged();

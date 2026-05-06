@@ -11,6 +11,10 @@
 #include "audio/renderers/renderer.h"
 #include "video/overlaymanager.h"
 
+class InputInjector;
+class InputControlServer;
+class InputRecorder;
+
 class SupportedVideoFormatList : public QList<int>
 {
 public:
@@ -259,6 +263,9 @@ private:
     QQuickWindow* m_QtWindow;
     bool m_UnexpectedTermination;
     SdlInputHandler* m_InputHandler;
+    InputInjector* m_InputInjector;
+    InputControlServer* m_InputControlServer;
+    InputRecorder* m_InputRecorder;
     int m_MouseEmulationRefCount;
     int m_FlushingWindowEventsRef;
     QStringList m_LaunchWarnings;

@@ -372,6 +372,13 @@ void StreamCommandLineParser::parse(const QStringList &args, StreamingPreference
     parser.addChoiceOption("video-codec", "video codec", m_VideoCodecMap.keys());
     parser.addChoiceOption("video-decoder", "video decoder", m_VideoDecoderMap.keys());
 
+    // Input injection (synthetic gamepad bench)
+    parser.addValueOption("input-inject-port", "TCP port (loopback) for input injection control");
+    parser.addValueOption("input-inject-token", "shared secret required by injection clients");
+    parser.addToggleOption("block-physical-input", "ignore physical gamepad events while injection is active");
+    parser.addValueOption("input-record", "record physical gamepad events to FILE on stream exit (.json)");
+    parser.addValueOption("input-record-hz", "frame rate metadata written to recorded file (default 60)");
+
     if (!parser.parse(args)) {
         parser.showError(parser.errorText());
     }
@@ -504,6 +511,42 @@ void StreamCommandLineParser::parse(const QStringList &args, StreamingPreference
     // Resolve --video-decoder option
     if (parser.isSet("video-decoder")) {
         preferences->videoDecoderSelection = mapValue(m_VideoDecoderMap, parser.getChoiceOptionValue("video-decoder"));
+    }
+
+    // Resolve input injection options
+    if (parser.isSet("input-inject-port")) {
+        int port = parser.getIntOption("input-inject-port");
+        if (!inRange(port, 1, 65535)) {
+            parser.showError(QString("Invalid input-inject-port: %1").arg(port));
+        }
+        preferences->inputInjectionPort = port;
+    }
+    if (parser.isSet("input-inject-token")) {
+        preferences->inputInjectionToken = parser.value("input-inject-token");
+        if (preferences->inputInjectionToken.length() < 16) {
+            parser.showError("input-inject-token must be at least 16 characters");
+        }
+    }
+    if (preferences->inputInjectionPort > 0 && preferences->inputInjectionToken.isEmpty()) {
+        parser.showError("--input-inject-port requires --input-inject-token");
+    }
+    preferences->inputInjectionBlockPhysical =
+        parser.getToggleOptionValue("block-physical-input", false);
+
+    // Resolve recorder options
+    if (parser.isSet("input-record")) {
+        preferences->inputRecordPath = parser.value("input-record");
+        if (preferences->inputRecordPath.isEmpty()) {
+            parser.showError("--input-record requires a file path");
+        }
+    }
+    if (parser.isSet("input-record-hz")) {
+        bool ok = false;
+        double hz = parser.value("input-record-hz").toDouble(&ok);
+        if (!ok || hz < 1.0 || hz > 1000.0) {
+            parser.showError("--input-record-hz must be a number between 1 and 1000");
+        }
+        preferences->inputRecordHz = hz;
     }
 
     // This method will not return and terminates the process if --version or
