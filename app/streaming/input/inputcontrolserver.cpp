@@ -57,9 +57,19 @@ bool InputControlServer::start()
 void InputControlServer::stop()
 {
     if (!m_Server) return;
-    for (auto it = m_Clients.begin(); it != m_Clients.end(); ++it) {
-        it.key()->disconnectFromHost();
-        it.key()->deleteLater();
+    // Avoid mutating m_Clients while iterating it. disconnectFromHost()
+    // can synchronously emit disconnected() and remove entries via
+    // onClientDisconnected().
+    const auto sockets = m_Clients.keys();
+    for (QTcpSocket* sock : sockets) {
+        if (!sock) {
+            continue;
+        }
+
+        // Prevent re-entrant callbacks into this object during teardown.
+        disconnect(sock, nullptr, this, nullptr);
+        sock->disconnectFromHost();
+        sock->deleteLater();
     }
     m_Clients.clear();
     m_Server->close();
