@@ -153,7 +153,24 @@ class SweepRunner:
 
     def _count_cases(self, config: SweepConfig) -> int:
         p1, p2 = config.p1, config.p2
-        counts = [len(p1.directions), len(p1.actions), len(p1.walk_frames.values()), len(p1.pre_button_frames.values()), len(p1.buttons), len(p1.press_frames.values()), len(p2.directions), len(p2.actions), len(p2.walk_frames.values()), len(p2.pre_button_frames.values()), len(p2.button_timing.values()), len(p2.buttons), len(p2.press_frames.values()), max(1, config.rules.repeats)]
+        p1_counts = [
+            len(p1.directions),
+            len(p1.actions),
+            len(p1.walk_frames.values()),
+            len(p1.pre_button_frames.values()),
+            len(p1.buttons),
+            len(p1.press_frames.values()),
+        ]
+        p2_counts = [
+            len(p2.directions),
+            len(p2.actions),
+            len(p2.walk_frames.values()),
+            len(p2.pre_button_frames.values()),
+            len(p2.button_timing.values()),
+            len(p2.buttons),
+            len(p2.press_frames.values()),
+        ]
+        counts = [*p1_counts, *p2_counts, max(1, config.rules.repeats)]
         total = 1
         for c in counts:
             total *= max(1, c)
@@ -315,15 +332,17 @@ class SweepRunner:
     def _action_to_buttons(action: str, pad: int) -> tuple[list[str], int]:
         a = action.lower().strip()
         fwd, back = ("RIGHT", "LEFT") if pad == 0 else ("LEFT", "RIGHT")
-        if a == "none": return [], 0
-        if a == "walk_forward": return [fwd], 5
-        if a == "walk_back": return [back], 5
-        if a == "jump_forward": return ["UP", fwd], 4
-        if a == "jump_neutral": return ["UP"], 4
-        if a == "jump_back": return ["UP", back], 4
-        if a == "dash_forward": return [fwd], 2
-        if a == "dash_back": return [back], 2
-        return [], 0
+        action_map: dict[str, tuple[list[str], int]] = {
+            "none": ([], 0),
+            "walk_forward": ([fwd], 5),
+            "walk_back": ([back], 5),
+            "jump_forward": (["UP", fwd], 4),
+            "jump_neutral": (["UP"], 4),
+            "jump_back": (["UP", back], 4),
+            "dash_forward": ([fwd], 2),
+            "dash_back": ([back], 2),
+        }
+        return action_map.get(a, ([], 0))
 
     @staticmethod
     def _sequence_duration_frames(seq: dict[str, Any]) -> int:

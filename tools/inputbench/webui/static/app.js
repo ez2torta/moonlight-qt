@@ -148,9 +148,15 @@
     const judgeLabel = document.getElementById('judge-label');
     const resultsBody = document.querySelector('#results-table tbody');
 
-    const tplHtml = `<label>Directions(csv) <input data-k="directions" value="FORWARD,UP_RIGHT,UP,UP_LEFT,LEFT,DOWN_LEFT,DOWN,DOWN_RIGHT" /></label>
+    const tplHtml = `
+      <label>Directions(csv) <input data-k="directions" value="FORWARD,UP_RIGHT,UP,UP_LEFT,LEFT,DOWN_LEFT,DOWN,DOWN_RIGHT" /></label>
       <label>Actions(csv) <input data-k="actions" value="none,jump_forward,jump_neutral,jump_back,walk_forward,walk_back" /></label>
-      <label>Buttons(csv) <input data-k="buttons" value="A,B,X,Y,RB" /></label>${rangeBox('walk_frames')}${rangeBox('pre_button_frames')}${rangeBox('button_timing')}${rangeBox('press_frames')}`;
+      <label>Buttons(csv) <input data-k="buttons" value="A,B,X,Y,RB" /></label>
+      ${rangeBox('walk_frames')}
+      ${rangeBox('pre_button_frames')}
+      ${rangeBox('button_timing')}
+      ${rangeBox('press_frames')}
+    `;
     p1El.innerHTML = tplHtml;
     p2El.innerHTML = tplHtml;
 

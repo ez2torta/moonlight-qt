@@ -204,6 +204,18 @@ class JudgeRequest(BaseModel):
     note: str = ""
 
 
+def _to_player_template(body: PlayerTemplateBody) -> PlayerTemplate:
+    return PlayerTemplate(
+        directions=body.directions,
+        actions=body.actions,
+        walk_frames=RangeSpec(**body.walk_frames.model_dump()),
+        pre_button_frames=RangeSpec(**body.pre_button_frames.model_dump()),
+        button_timing=RangeSpec(**body.button_timing.model_dump()),
+        buttons=body.buttons,
+        press_frames=RangeSpec(**body.press_frames.model_dump()),
+    )
+
+
 @app.get("/")
 async def root() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
@@ -268,8 +280,8 @@ async def api_reset_training(req: ResetRequest, _: None = Depends(require_auth))
 @app.post("/api/sweep/start")
 async def api_sweep_start(req: SweepStartRequest, _: None = Depends(require_auth)) -> dict[str, Any]:
     cfg = SweepConfig(
-        p1=PlayerTemplate(directions=req.p1.directions, actions=req.p1.actions, walk_frames=RangeSpec(**req.p1.walk_frames.model_dump()), pre_button_frames=RangeSpec(**req.p1.pre_button_frames.model_dump()), button_timing=RangeSpec(**req.p1.button_timing.model_dump()), buttons=req.p1.buttons, press_frames=RangeSpec(**req.p1.press_frames.model_dump())),
-        p2=PlayerTemplate(directions=req.p2.directions, actions=req.p2.actions, walk_frames=RangeSpec(**req.p2.walk_frames.model_dump()), pre_button_frames=RangeSpec(**req.p2.pre_button_frames.model_dump()), button_timing=RangeSpec(**req.p2.button_timing.model_dump()), buttons=req.p2.buttons, press_frames=RangeSpec(**req.p2.press_frames.model_dump())),
+        p1=_to_player_template(req.p1),
+        p2=_to_player_template(req.p2),
         rules=SweepRules(**req.rules.model_dump()),
     )
     return await asyncio.to_thread(SWEEP.start, cfg)
