@@ -8,7 +8,7 @@ Winner = Literal["p1", "p2", "draw", "unknown"]
 
 try:
     import cv2  # type: ignore
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
     cv2 = None
 
 

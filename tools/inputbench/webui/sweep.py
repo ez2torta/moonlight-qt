@@ -247,7 +247,21 @@ class SweepRunner:
     def _iter_attempts(self, config: SweepConfig):
         p1, p2, rules = config.p1, config.p2, config.rules
         for repeat in range(max(1, rules.repeats)):
-            product = itertools.product(p1.directions, p1.actions, p1.walk_frames.values(), p1.pre_button_frames.values(), p1.buttons, p1.press_frames.values(), p2.directions, p2.actions, p2.walk_frames.values(), p2.pre_button_frames.values(), p2.button_timing.values(), p2.buttons, p2.press_frames.values())
+            product = itertools.product(
+                p1.directions,
+                p1.actions,
+                p1.walk_frames.values(),
+                p1.pre_button_frames.values(),
+                p1.buttons,
+                p1.press_frames.values(),
+                p2.directions,
+                p2.actions,
+                p2.walk_frames.values(),
+                p2.pre_button_frames.values(),
+                p2.button_timing.values(),
+                p2.buttons,
+                p2.press_frames.values(),
+            )
             for values in product:
                 (p1_dir, p1_action, p1_walk, p1_pre, p1_button, p1_press, p2_dir, p2_action, p2_walk, p2_pre, p2_button_timing, p2_button, p2_press) = values
                 yield {

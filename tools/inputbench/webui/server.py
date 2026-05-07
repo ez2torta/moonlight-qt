@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -42,13 +41,34 @@ def _load_config() -> dict[str, Any]:
 
 CONFIG = _load_config()
 
-MOONLIGHT = MoonlightClient(MoonlightConnectionConfig(host=str(CONFIG["moonlight"]["host"]), port=int(CONFIG["moonlight"]["port"]), token=str(CONFIG["moonlight"]["token"]), timeout_sec=float(CONFIG["moonlight"].get("timeout_sec", 5.0))))
-RECORDER = AttemptRecorder(RecorderConfig(enabled=bool(CONFIG.get("recorder", {}).get("enabled", False)), command=CONFIG.get("recorder", {}).get("command")))
-WINNER_DETECTOR = WinnerDetector(WinnerDetectorConfig(mode=str(CONFIG.get("winner_detector", {}).get("mode", "manual")), template_dir=str((ROOT / str(CONFIG.get("winner_detector", {}).get("template_dir", "./templates"))).resolve()), roi_enabled=bool(CONFIG.get("winner_detector", {}).get("roi", {}).get("enabled", False)), roi_p1=tuple(CONFIG.get("winner_detector", {}).get("roi", {}).get("p1", [0, 0, 0, 0])), roi_p2=tuple(CONFIG.get("winner_detector", {}).get("roi", {}).get("p2", [0, 0, 0, 0]))))
+MOONLIGHT = MoonlightClient(
+    MoonlightConnectionConfig(
+        host=str(CONFIG["moonlight"]["host"]),
+        port=int(CONFIG["moonlight"]["port"]),
+        token=str(CONFIG["moonlight"]["token"]),
+        timeout_sec=float(CONFIG["moonlight"].get("timeout_sec", 5.0)),
+    )
+)
+RECORDER = AttemptRecorder(
+    RecorderConfig(
+        enabled=bool(CONFIG.get("recorder", {}).get("enabled", False)),
+        command=CONFIG.get("recorder", {}).get("command"),
+    )
+)
+winner_cfg = CONFIG.get("winner_detector", {})
+winner_roi = winner_cfg.get("roi", {})
+WINNER_DETECTOR = WinnerDetector(
+    WinnerDetectorConfig(
+        mode=str(winner_cfg.get("mode", "manual")),
+        template_dir=str((ROOT / str(winner_cfg.get("template_dir", "./templates"))).resolve()),
+        roi_enabled=bool(winner_roi.get("enabled", False)),
+        roi_p1=tuple(winner_roi.get("p1", [0, 0, 0, 0])),
+        roi_p2=tuple(winner_roi.get("p2", [0, 0, 0, 0])),
+    )
+)
 OUTPUTS_DIR = (ROOT / str(CONFIG.get("outputs_dir", "../sweeps"))).resolve()
 OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
 RESET_SEQUENCE_PATH = (ROOT / str(CONFIG.get("reset_sequence", "../sequences/reset_training.json"))).resolve()
-SEQUENCES_DIR = (ROOT.parent / "sequences").resolve()
 
 
 class BroadcastHub:
@@ -115,8 +135,7 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 def _auth_pin() -> str:
-    env = os.getenv("INPUTBENCH_WEBUI_PIN", "")
-    return env if env else str(CONFIG.get("auth_pin", ""))
+    return str(CONFIG.get("auth_pin", ""))
 
 
 async def require_auth(x_auth: str | None = Header(default=None, alias="X-Auth"), auth: str | None = Query(default=None)) -> None:
@@ -146,7 +165,7 @@ class PlayRequest(BaseModel):
 
 
 class ResetRequest(BaseModel):
-    path: str | None = None
+    use_default: bool = True
 
 
 class RangeBody(BaseModel):
@@ -183,19 +202,6 @@ class SweepStartRequest(BaseModel):
 class JudgeRequest(BaseModel):
     winner: str
     note: str = ""
-
-
-def _resolve_allowed_sequence_path(user_path: str) -> Path:
-    candidate = Path(user_path)
-    if candidate.is_absolute():
-        raise HTTPException(status_code=400, detail="absolute paths are not allowed")
-    resolved = (ROOT / candidate).resolve()
-    allowed_roots = [SEQUENCES_DIR, ROOT]
-    if not any(str(resolved).startswith(str(base) + os.sep) or resolved == base for base in allowed_roots):
-        raise HTTPException(status_code=400, detail="path must stay within webui or sequences directories")
-    if resolved.suffix.lower() != ".json":
-        raise HTTPException(status_code=400, detail="path must point to a .json file")
-    return resolved
 
 
 @app.get("/")
@@ -253,8 +259,6 @@ async def api_play(req: PlayRequest, _: None = Depends(require_auth)) -> dict[st
 @app.post("/api/reset-training")
 async def api_reset_training(req: ResetRequest, _: None = Depends(require_auth)) -> dict[str, Any]:
     path = RESET_SEQUENCE_PATH
-    if req.path:
-        path = _resolve_allowed_sequence_path(req.path)
     if not path.exists():
         raise HTTPException(status_code=404, detail=f"reset sequence not found: {path}")
     seq = json.loads(path.read_text(encoding="utf-8"))
@@ -346,4 +350,3 @@ async def ws_endpoint(ws: WebSocket, auth: str | None = Query(default=None)) -> 
             await ws.receive_text()
     except WebSocketDisconnect:
         await HUB.disconnect(ws)
-

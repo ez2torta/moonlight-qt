@@ -8,14 +8,14 @@
   </head>
   <body data-page="sweep">
     <header class="topbar">
-      <a href="/" class="btn secondary">Inicio</a>
+      <a href="/" class="btn secondary">Home</a>
       <div id="sweep-conn" class="status bad">offline</div>
-      <button id="reset-training" class="btn">Probar reset training</button>
+      <button id="reset-training" class="btn">Test training reset</button>
     </header>
 
     <main class="sweep-main">
       <section class="card">
-        <h2>Configuración Sweep</h2>
+        <h2>Sweep Configuration</h2>
         <div class="grid2">
           <label>FPS <input id="cfg-fps" type="number" value="120" /></label>
           <label>Repeats <input id="cfg-repeats" type="number" value="1" min="1" /></label>
@@ -45,21 +45,21 @@
       </section>
 
       <section class="card">
-        <h2>Estado</h2>
+        <h2>Status</h2>
         <pre id="sweep-status">-</pre>
-        <h3>Juicio manual</h3>
+        <h3>Manual judgement</h3>
         <div id="judge-box" class="judge-box hidden">
-          <p id="judge-label">Pendiente...</p>
-          <button class="btn" data-judge="p1">Gana P1</button>
-          <button class="btn" data-judge="p2">Gana P2</button>
-          <button class="btn" data-judge="draw">Empate</button>
-          <button class="btn" data-judge="repeat">Repetir</button>
+          <p id="judge-label">Pending...</p>
+          <button class="btn" data-judge="p1">P1 wins</button>
+          <button class="btn" data-judge="p2">P2 wins</button>
+          <button class="btn" data-judge="draw">Draw</button>
+          <button class="btn" data-judge="repeat">Repeat</button>
         </div>
       </section>
 
       <section class="card">
-        <h2>Resultados</h2>
-        <button id="refresh-results" class="btn secondary">Refrescar</button>
+        <h2>Results</h2>
+        <button id="refresh-results" class="btn secondary">Refresh</button>
         <div class="table-wrap">
           <table id="results-table">
             <thead>

@@ -27,7 +27,7 @@
     saveBtn.addEventListener('click', () => {
       state.pin = pinInput.value.trim();
       localStorage.setItem('inputbench.pin', state.pin);
-      alert('PIN guardado localmente');
+      alert('PIN saved locally');
     });
     return;
   }
@@ -183,7 +183,7 @@
         statusEl.textContent = JSON.stringify(st, null, 2);
         connEl.textContent = 'online'; connEl.classList.add('good'); connEl.classList.remove('bad');
         const pending = st.pending_judgement;
-        if (pending) { judgeBox.classList.remove('hidden'); judgeLabel.textContent = `Pendiente #${pending.index}`; }
+        if (pending) { judgeBox.classList.remove('hidden'); judgeLabel.textContent = `Pending #${pending.index}`; }
         else judgeBox.classList.add('hidden');
       } catch {
         connEl.textContent = 'offline'; connEl.classList.add('bad'); connEl.classList.remove('good');
@@ -227,7 +227,7 @@
           if (msg.type === 'sweep_attempt_done' || msg.type === 'sweep_finished') {
             await refreshResults();
             if (msg.type === 'sweep_finished') {
-              if (window.Notification && Notification.permission === 'granted') new Notification('Sweep terminado', { body: 'Se completaron las combinaciones.' });
+              if (window.Notification && Notification.permission === 'granted') new Notification('Sweep completed', { body: 'All combinations finished.' });
             }
           }
         }
