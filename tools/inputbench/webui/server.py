@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +48,7 @@ WINNER_DETECTOR = WinnerDetector(WinnerDetectorConfig(mode=str(CONFIG.get("winne
 OUTPUTS_DIR = (ROOT / str(CONFIG.get("outputs_dir", "../sweeps"))).resolve()
 OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
 RESET_SEQUENCE_PATH = (ROOT / str(CONFIG.get("reset_sequence", "../sequences/reset_training.json"))).resolve()
+SEQUENCES_DIR = (ROOT.parent / "sequences").resolve()
 
 
 class BroadcastHub:
@@ -91,7 +93,24 @@ def _load_reset_sequence() -> dict[str, Any] | None:
 
 SWEEP = SweepRunner(client=MOONLIGHT, recorder=RECORDER, detector=WINNER_DETECTOR, outputs_dir=OUTPUTS_DIR, reset_sequence_loader=_load_reset_sequence, publish=_publish_from_thread, save_sequences_default=bool(CONFIG.get("save_generated_sequences", True)))
 
-app = FastAPI(title="Moonlight InputBench WebUI", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    global APP_LOOP
+    APP_LOOP = asyncio.get_running_loop()
+    try:
+        yield
+    finally:
+        APP_LOOP = None
+        try:
+            SWEEP.stop()
+        except Exception:
+            pass
+        RECORDER.stop()
+        MOONLIGHT.close()
+
+
+app = FastAPI(title="Moonlight InputBench WebUI", version="0.1.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
@@ -166,6 +185,19 @@ class JudgeRequest(BaseModel):
     note: str = ""
 
 
+def _resolve_allowed_sequence_path(user_path: str) -> Path:
+    candidate = Path(user_path)
+    if candidate.is_absolute():
+        raise HTTPException(status_code=400, detail="absolute paths are not allowed")
+    resolved = (ROOT / candidate).resolve()
+    allowed_roots = [SEQUENCES_DIR, ROOT]
+    if not any(str(resolved).startswith(str(base) + os.sep) or resolved == base for base in allowed_roots):
+        raise HTTPException(status_code=400, detail="path must stay within webui or sequences directories")
+    if resolved.suffix.lower() != ".json":
+        raise HTTPException(status_code=400, detail="path must point to a .json file")
+    return resolved
+
+
 @app.get("/")
 async def root() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
@@ -222,8 +254,7 @@ async def api_play(req: PlayRequest, _: None = Depends(require_auth)) -> dict[st
 async def api_reset_training(req: ResetRequest, _: None = Depends(require_auth)) -> dict[str, Any]:
     path = RESET_SEQUENCE_PATH
     if req.path:
-        candidate = Path(req.path)
-        path = candidate if candidate.is_absolute() else (ROOT / candidate).resolve()
+        path = _resolve_allowed_sequence_path(req.path)
     if not path.exists():
         raise HTTPException(status_code=404, detail=f"reset sequence not found: {path}")
     seq = json.loads(path.read_text(encoding="utf-8"))
@@ -316,18 +347,3 @@ async def ws_endpoint(ws: WebSocket, auth: str | None = Query(default=None)) -> 
     except WebSocketDisconnect:
         await HUB.disconnect(ws)
 
-
-@app.on_event("startup")
-async def startup() -> None:
-    global APP_LOOP
-    APP_LOOP = asyncio.get_running_loop()
-
-
-@app.on_event("shutdown")
-def shutdown() -> None:
-    try:
-        SWEEP.stop()
-    except Exception:
-        pass
-    RECORDER.stop()
-    MOONLIGHT.close()

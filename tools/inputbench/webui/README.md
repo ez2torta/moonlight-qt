@@ -21,13 +21,13 @@ Interfaz web para controlar el servidor de inyección de Moonlight desde celular
 ## Instalar dependencias
 
 ```bash
-python3 -m pip install -r /home/runner/work/moonlight-qt/moonlight-qt/tools/inputbench/webui/requirements.txt
+python3 -m pip install -r tools/inputbench/webui/requirements.txt
 ```
 
 ## Ejecutar
 
 ```bash
-cd /home/runner/work/moonlight-qt/moonlight-qt/tools/inputbench/webui
+cd tools/inputbench/webui
 uvicorn server:app --host 0.0.0.0 --port 8088
 ```
 
