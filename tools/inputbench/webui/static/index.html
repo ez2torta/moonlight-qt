@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>InputBench WebUI</title>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body data-page="index">
+    <main class="index-main">
+      <h1>InputBench WebUI</h1>
+      <p>Control remoto y barridos sintéticos para Moonlight InputInjector.</p>
+      <div class="links">
+        <a class="btn" href="/live">Vista Live (P1/P2)</a>
+        <a class="btn" href="/sweep">Vista Sweep</a>
+      </div>
+      <label>PIN (X-Auth) <input id="pin-input" type="password" placeholder="Opcional" /></label>
+      <button id="save-pin" class="btn">Guardar PIN local</button>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

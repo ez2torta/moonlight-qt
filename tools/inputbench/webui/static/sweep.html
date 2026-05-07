@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Synthetic Sweep</title>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body data-page="sweep">
+    <header class="topbar">
+      <a href="/" class="btn secondary">Inicio</a>
+      <div id="sweep-conn" class="status bad">offline</div>
+      <button id="reset-training" class="btn">Probar reset training</button>
+    </header>
+
+    <main class="sweep-main">
+      <section class="card">
+        <h2>Configuración Sweep</h2>
+        <div class="grid2">
+          <label>FPS <input id="cfg-fps" type="number" value="120" /></label>
+          <label>Repeats <input id="cfg-repeats" type="number" value="1" min="1" /></label>
+          <label>Settle frames <input id="cfg-settle" type="number" value="10" min="0" /></label>
+          <label>Pause frames <input id="cfg-pause" type="number" value="15" min="0" /></label>
+          <label>Winner mode
+            <select id="cfg-winner-mode">
+              <option value="manual">manual</option>
+              <option value="auto">auto</option>
+            </select>
+          </label>
+        </div>
+
+        <h3>P1</h3>
+        <div id="p1-template" class="template"></div>
+
+        <h3>P2</h3>
+        <div id="p2-template" class="template"></div>
+
+        <div class="actions-row">
+          <button id="sweep-start" class="btn">Start</button>
+          <button id="sweep-pause" class="btn">Pause</button>
+          <button id="sweep-resume" class="btn">Resume</button>
+          <button id="sweep-skip" class="btn">Skip current</button>
+          <button id="sweep-stop" class="btn danger">Stop</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Estado</h2>
+        <pre id="sweep-status">-</pre>
+        <h3>Juicio manual</h3>
+        <div id="judge-box" class="judge-box hidden">
+          <p id="judge-label">Pendiente...</p>
+          <button class="btn" data-judge="p1">Gana P1</button>
+          <button class="btn" data-judge="p2">Gana P2</button>
+          <button class="btn" data-judge="draw">Empate</button>
+          <button class="btn" data-judge="repeat">Repetir</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Resultados</h2>
+        <button id="refresh-results" class="btn secondary">Refrescar</button>
+        <div class="table-wrap">
+          <table id="results-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Winner</th>
+                <th>P1</th>
+                <th>P2</th>
+                <th>Input JSON</th>
+                <th>MP4</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

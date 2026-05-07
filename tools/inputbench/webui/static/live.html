@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Control</title>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body data-page="live">
+    <header class="topbar">
+      <a href="/" class="btn secondary">Inicio</a>
+      <div id="conn-status" class="status bad">offline</div>
+      <div>Ping: <span id="ping-ms">-</span> ms</div>
+      <button id="panic-stop" class="btn danger">PANIC / STOP</button>
+    </header>
+
+    <main class="live-grid">
+      <section class="pad" data-pad="0">
+        <h2>P1</h2>
+        <div class="dpad">
+          <button class="touch" data-pad="0" data-button="UP_LEFT">↖</button>
+          <button class="touch" data-pad="0" data-button="UP">↑</button>
+          <button class="touch" data-pad="0" data-button="UP_RIGHT">↗</button>
+          <button class="touch" data-pad="0" data-button="LEFT">←</button>
+          <button class="touch center">·</button>
+          <button class="touch" data-pad="0" data-button="RIGHT">→</button>
+          <button class="touch" data-pad="0" data-button="DOWN_LEFT">↙</button>
+          <button class="touch" data-pad="0" data-button="DOWN">↓</button>
+          <button class="touch" data-pad="0" data-button="DOWN_RIGHT">↘</button>
+        </div>
+        <div class="actions">
+          <button class="touch action" data-pad="0" data-button="A">A</button>
+          <button class="touch action" data-pad="0" data-button="B">B</button>
+          <button class="touch action" data-pad="0" data-button="X">X</button>
+          <button class="touch action" data-pad="0" data-button="Y">Y</button>
+          <button class="touch action" data-pad="0" data-button="RB">RB</button>
+          <button class="touch" data-pad="0" data-button="LB">LB</button>
+          <button class="touch" data-pad="0" data-button="START">START</button>
+          <button class="touch" data-pad="0" data-button="BACK">BACK</button>
+        </div>
+        <p class="held" id="held-0">Held: -</p>
+      </section>
+
+      <section class="pad" data-pad="1">
+        <h2>P2</h2>
+        <div class="dpad">
+          <button class="touch" data-pad="1" data-button="UP_LEFT">↖</button>
+          <button class="touch" data-pad="1" data-button="UP">↑</button>
+          <button class="touch" data-pad="1" data-button="UP_RIGHT">↗</button>
+          <button class="touch" data-pad="1" data-button="LEFT">←</button>
+          <button class="touch center">·</button>
+          <button class="touch" data-pad="1" data-button="RIGHT">→</button>
+          <button class="touch" data-pad="1" data-button="DOWN_LEFT">↙</button>
+          <button class="touch" data-pad="1" data-button="DOWN">↓</button>
+          <button class="touch" data-pad="1" data-button="DOWN_RIGHT">↘</button>
+        </div>
+        <div class="actions">
+          <button class="touch action" data-pad="1" data-button="A">A</button>
+          <button class="touch action" data-pad="1" data-button="B">B</button>
+          <button class="touch action" data-pad="1" data-button="X">X</button>
+          <button class="touch action" data-pad="1" data-button="Y">Y</button>
+          <button class="touch action" data-pad="1" data-button="RB">RB</button>
+          <button class="touch" data-pad="1" data-button="LB">LB</button>
+          <button class="touch" data-pad="1" data-button="START">START</button>
+          <button class="touch" data-pad="1" data-button="BACK">BACK</button>
+        </div>
+        <p class="held" id="held-1">Held: -</p>
+      </section>
+    </main>
+
+    <footer class="footer-controls">
+      <label>Tap mínimo (frames) <input id="tap-frames" type="number" value="2" min="1" max="10" /></label>
+      <label>FPS <input id="live-fps" type="number" value="120" min="30" max="240" /></label>
+      <button id="release-all" class="btn">Soltar todo</button>
+    </footer>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
