@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -74,16 +74,13 @@ class BroadcastHub:
 
 
 HUB = BroadcastHub()
+APP_LOOP: asyncio.AbstractEventLoop | None = None
 
 
 def _publish_from_thread(msg: dict[str, Any]) -> None:
-    try:
-        loop = asyncio.get_running_loop()
-        loop.create_task(HUB.broadcast(msg))
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(HUB.broadcast(msg))
-        loop.close()
+    if APP_LOOP is None:
+        return
+    asyncio.run_coroutine_threadsafe(HUB.broadcast(msg), APP_LOOP)
 
 
 def _load_reset_sequence() -> dict[str, Any] | None:
@@ -274,6 +271,26 @@ async def api_sweep_results(_: None = Depends(require_auth)) -> dict[str, Any]:
     return {"rows": rows}
 
 
+@app.get("/api/sweep/results.csv")
+async def api_sweep_results_csv(_: None = Depends(require_auth)) -> PlainTextResponse:
+    rows = await asyncio.to_thread(SWEEP.results)
+    lines = ["index,winner,p1,p2,input_json_path,video_path,note"]
+    for row in rows:
+        line = ",".join(
+            [
+                str(row.get("index", "")),
+                str(row.get("winner", "")),
+                json.dumps(row.get("params", {}).get("p1", {}), separators=(",", ":")),
+                json.dumps(row.get("params", {}).get("p2", {}), separators=(",", ":")),
+                json.dumps(str(row.get("input_json_path", "") or "")),
+                json.dumps(str(row.get("video_path", "") or "")),
+                json.dumps(str(row.get("note", "") or "")),
+            ]
+        )
+        lines.append(line)
+    return PlainTextResponse("\n".join(lines), media_type="text/csv")
+
+
 @app.post("/api/sweep/judge")
 async def api_sweep_judge(req: JudgeRequest, _: None = Depends(require_auth)) -> dict[str, Any]:
     winner = req.winner.lower()
@@ -298,6 +315,12 @@ async def ws_endpoint(ws: WebSocket, auth: str | None = Query(default=None)) -> 
             await ws.receive_text()
     except WebSocketDisconnect:
         await HUB.disconnect(ws)
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    global APP_LOOP
+    APP_LOOP = asyncio.get_running_loop()
 
 
 @app.on_event("shutdown")

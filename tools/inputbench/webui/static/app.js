@@ -41,6 +41,9 @@
     const heldEls = [document.getElementById('held-0'), document.getElementById('held-1')];
     const heldButtons = [new Set(), new Set()];
     const pointers = [new Map(), new Map()];
+    const pressStarts = [new Map(), new Map()];
+    const tapFramesEl = document.getElementById('tap-frames');
+    const liveFpsEl = document.getElementById('live-fps');
 
     const expandDirection = (name) => {
       switch (name) {
@@ -60,13 +63,27 @@
 
     const press = async (pad, pointerId, logicalButton, element) => {
       pointers[pad].set(pointerId, logicalButton);
+      pressStarts[pad].set(pointerId, performance.now());
       for (const b of expandDirection(logicalButton)) heldButtons[pad].add(b);
       element.classList.add('active');
       await syncPad(pad);
     };
 
     const release = async (pad, pointerId, element) => {
+      const btn = pointers[pad].get(pointerId) || '';
+      const startedAt = pressStarts[pad].get(pointerId) || performance.now();
       pointers[pad].delete(pointerId);
+      pressStarts[pad].delete(pointerId);
+      const isAction = ['A', 'B', 'X', 'Y', 'RB'].includes(btn);
+      if (isAction) {
+        const minFrames = Math.max(1, Number(tapFramesEl?.value || 1));
+        const fps = Math.max(1, Number(liveFpsEl?.value || 120));
+        const minMs = (minFrames * 1000.0) / fps;
+        const elapsed = performance.now() - startedAt;
+        if (elapsed < minMs) {
+          await new Promise((resolve) => setTimeout(resolve, Math.ceil(minMs - elapsed)));
+        }
+      }
       const still = new Set();
       for (const lb of pointers[pad].values()) for (const b of expandDirection(lb)) still.add(b);
       heldButtons[pad] = still;
