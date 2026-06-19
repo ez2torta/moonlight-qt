@@ -1,0 +1,38 @@
+{
+  "listen_host": "0.0.0.0",
+  "listen_port": 8088,
+  "auth_pin": "",
+  "moonlight": {
+    "host": "127.0.0.1",
+    "port": 47999,
+    "token": "CHANGE_ME_MIN_16_CHARS",
+    "timeout_sec": 5.0
+  },
+  "default_fps": 120,
+  "reset_sequence": "../sequences/reset_training.json",
+  "outputs_dir": "../sweeps",
+  "save_generated_sequences": true,
+  "button_labels": {
+    "A": "A",
+    "B": "B",
+    "X": "X",
+    "Y": "Y",
+    "RB": "RB"
+  },
+  "recorder": {
+    "enabled": false,
+    "command": [
+      "ffmpeg", "-y", "-f", "x11grab", "-video_size", "1920x1080",
+      "-i", ":0.0", "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p", "{output}"
+    ]
+  },
+  "winner_detector": {
+    "mode": "manual",
+    "template_dir": "./templates",
+    "roi": {
+      "enabled": false,
+      "p1": [0, 0, 0, 0],
+      "p2": [0, 0, 0, 0]
+    }
+  }
+}

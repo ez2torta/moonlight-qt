@@ -6,3 +6,5 @@
 build/
 config.tests/*/.qmake.stash
 config.tests/*/Makefile
+__pycache__/
+*.pyc

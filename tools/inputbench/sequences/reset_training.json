@@ -1,0 +1,48 @@
+{
+  "mode": "events",
+  "fps": 120,
+  "events": [
+    {
+      "t": 0,
+      "pad": 0,
+      "up": ["UP", "DOWN", "LEFT", "RIGHT", "A", "B", "X", "Y", "LB", "RB", "LS", "RS", "BACK", "START", "GUIDE", "MISC", "PADDLE1", "PADDLE2", "PADDLE3", "PADDLE4", "TOUCHPAD"],
+      "lt": 0,
+      "rt": 0,
+      "lx": 0,
+      "ly": 0,
+      "rx": 0,
+      "ry": 0
+    },
+    {
+      "t": 0,
+      "pad": 1,
+      "up": ["UP", "DOWN", "LEFT", "RIGHT", "A", "B", "X", "Y", "LB", "RB", "LS", "RS", "BACK", "START", "GUIDE", "MISC", "PADDLE1", "PADDLE2", "PADDLE3", "PADDLE4", "TOUCHPAD"],
+      "lt": 0,
+      "rt": 0,
+      "lx": 0,
+      "ly": 0,
+      "rx": 0,
+      "ry": 0
+    },
+    {
+      "t": 8,
+      "pad": 0,
+      "lt": 0,
+      "rt": 0,
+      "lx": 0,
+      "ly": 0,
+      "rx": 0,
+      "ry": 0
+    },
+    {
+      "t": 8,
+      "pad": 1,
+      "lt": 0,
+      "rt": 0,
+      "lx": 0,
+      "ly": 0,
+      "rx": 0,
+      "ry": 0
+    }
+  ]
+}
